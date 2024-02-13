@@ -16,8 +16,8 @@ private:
 public:
   ServoNode() : Node("servo_node")
   {
-    sub_ = this->create_subscription<sensor_msgs::msg::Joy>("can_tx", 10, std::bind(&ServoNode::joy_callback, this, std::placeholders::_1));
-    pub_ = this->create_publisher<can_plugins2::msg::Frame>("servo", 10);
+    sub_ = this->create_subscription<sensor_msgs::msg::Joy>("joy", 10, std::bind(&ServoNode::joy_callback, this, std::placeholders::_1));
+    pub_ = this->create_publisher<can_plugins2::msg::Frame>("can_tx", 10);
     this->declare_parameter("velButton", 2);
     this->declare_parameter("disButton", 1);
     // ツイスト型の調査

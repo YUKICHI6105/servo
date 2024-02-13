@@ -8,7 +8,7 @@
   </node>
 
   <node pkg="servo" exec="servo_node" name="servo_node">
-    <param from="$(find-pkg-share servo)/config/solenoid.yaml"/>
+    <param from="$(find-pkg-share servo)/config/servo.yaml"/>
   </node>
   
   <include file="$(find-pkg-share can_plugins2)/launch/slcan_bridge_launch.xml"/>
