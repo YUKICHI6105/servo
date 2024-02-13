@@ -10,6 +10,11 @@ class ServoNode : public rclcpp::Node
 private:
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr sub_;
   rclcpp::Publisher<can_plugins2::msg::Frame>::SharedPtr pub_;
+  std::shared_ptr<rclcpp::ParameterEventHandler> param_subscriber_;
+  std::shared_ptr<rclcpp::ParameterCallbackHandle> button_callback_handle_;
+  std::shared_ptr<rclcpp::ParameterCallbackHandle> mode_callback_handle_;
+  std::shared_ptr<rclcpp::ParameterCallbackHandle> vel_callback_handle_;
+  std::shared_ptr<rclcpp::ParameterCallbackHandle> dis_callback_handle_;
   void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
   ServoArray servoArray;
 
@@ -29,6 +34,24 @@ public:
     this->declare_parameter("ServoMode", rclcpp::PARAMETER_STRING_ARRAY); // サーボのトグルモードの選択
     std::vector<rclcpp::Parameter> servo_mode_parameters{rclcpp::Parameter("ServoMode", servoArray.mode)};
     this->set_parameters(servo_mode_parameters);
+    
+    param_subscriber_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+    auto param_callback = [this](const rclcpp::Parameter & p) {
+      if (p.get_name() == "ServoButton")
+      {
+        servoArray.button = p.as_integer_array();
+      }
+      if (p.get_name() == "ServoMode")
+      {
+        servoArray.mode = p.as_string_array();
+      }
+    };
+    button_callback_handle_ = param_subscriber_->add_parameter_callback("ServoButton", param_callback);
+    // RCLCPP_ERROR(get_logger(),"servo_node servo_node");
+    mode_callback_handle_ = param_subscriber_->add_parameter_callback("ServoMode", param_callback);
+    vel_callback_handle_ = param_subscriber_->add_parameter_callback("velButton", param_callback);
+    dis_callback_handle_ = param_subscriber_->add_parameter_callback("disButton", param_callback);
+    
   }
   void toggle(uint32_t channel, const sensor_msgs::msg::Joy::SharedPtr msg);
   void setValue(uint32_t channel);
