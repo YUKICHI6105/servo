@@ -15,6 +15,7 @@ private:
   std::shared_ptr<rclcpp::ParameterCallbackHandle> mode_callback_handle_;
   std::shared_ptr<rclcpp::ParameterCallbackHandle> vel_callback_handle_;
   std::shared_ptr<rclcpp::ParameterCallbackHandle> dis_callback_handle_;
+  void publishServo(uint32_t id, uint16_t data[]);
   void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
   ServoArray servoArray;
 
@@ -25,7 +26,6 @@ public:
     pub_ = this->create_publisher<can_plugins2::msg::Frame>("can_tx", 10);
     this->declare_parameter("velButton", 2);
     this->declare_parameter("disButton", 1);
-    // ツイスト型の調査
 
     this->declare_parameter("ServoButton", rclcpp::PARAMETER_INTEGER_ARRAY); // サーボのボタンのパラメーター
     std::vector<rclcpp::Parameter> servo_button_parameters{rclcpp::Parameter("ServoButton", servoArray.button)};
@@ -57,6 +57,17 @@ public:
   void setValue(uint32_t channel);
 };
 
+void ServoNode::publishServo(uint32_t id, uint16_t data[]){
+  auto frame = std::make_unique<can_plugins2::msg::Frame>();
+  frame->id = id;
+  frame->is_rtr = false;
+  frame->is_extended = false;
+  frame->is_error = false;
+  frame->dlc = 8;
+  std::memcpy(frame->data.data(),data,8);
+  pub_->publish(std::move(frame));
+}
+
 void ServoNode::setValue(uint32_t channel)
 {
   if(channel<4){
@@ -72,13 +83,13 @@ void ServoNode::toggle(uint32_t channel, const sensor_msgs::msg::Joy::SharedPtr 
   {
     if (servoArray.preButton[channel] == 0)
     {
-      if (servoArray.value[channel] == 58000)
+      if (servoArray.value[channel] == 40000)
       {
         servoArray.value[channel] = 58000*40/270;
       }
       else
       {
-        servoArray.value[channel] = 58000;
+        servoArray.value[channel] = 40000;
       }
       setValue(channel);
       servoArray.preButton[channel] = 1;
@@ -107,8 +118,9 @@ void ServoNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
       toggle(i, msg);
     }
   }
-  this->pub_->publish(get_frame(0x301, servoArray.upperValue));
-  this->pub_->publish(get_frame(0x302, servoArray.lowerValue));
+  this->publishServo(0x301,servoArray.upperValue);
+  this->publishServo(0x302,servoArray.lowerValue);
+  RCLCPP_INFO(this->get_logger(), "I heard: %i", *servoArray.value);
 }
 
 int main(int argc, char *argv[])
