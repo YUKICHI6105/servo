@@ -83,13 +83,13 @@ void ServoNode::toggle(uint32_t channel, const sensor_msgs::msg::Joy::SharedPtr 
   {
     if (servoArray.preButton[channel] == 0)
     {
-      if (servoArray.value[channel] == 40000)
+      if (servoArray.value[channel] == 12000+48000*135/270)
       {
-        servoArray.value[channel] = 58000*40/270;
+        servoArray.value[channel] = 12000+48000*45/270;
       }
       else
       {
-        servoArray.value[channel] = 40000;
+        servoArray.value[channel] = 12000+48000*135/270;
       }
       setValue(channel);
       servoArray.preButton[channel] = 1;
